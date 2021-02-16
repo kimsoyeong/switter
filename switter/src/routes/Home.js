@@ -6,7 +6,7 @@ import Sweet from "components/Sweet";
 const Home = ({ userObj }) => {
   const [sweet, setSweet] = useState("");
   const [sweets, setSweets] = useState([]);
-  const [attachment, setAttachment] = useState();
+  const [attachment, setAttachment] = useState("");
   useEffect(() => { // when the component mounts
     dbService.collection("sweets").onSnapshot((snapshot) => {
       const sweetArray = snapshot.docs.map((doc) => ({
@@ -34,7 +34,7 @@ const Home = ({ userObj }) => {
     };
     await dbService.collection("sweets").add(sweetObj);
     setSweet("");
-    setAttachment();
+    setAttachment("");
   };
   const onChange = (event) => {
     const{
