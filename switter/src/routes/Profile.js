@@ -27,7 +27,7 @@ export default ({ refreshUser, userObj }) => {
   };
   return (
     <div className="container">
-      <form onSubmit={onSubmit}>
+      <form className="profileForm" onSubmit={onSubmit}>
         <input 
           onChange={onChange}
           type="text" 
