@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { dbService } from "fbase";
+import { v4 as uuidv4 } from 'uuid';
+import { dbService, storageService } from "fbase";
 import Sweet from "components/Sweet";
 
 const Home = ({ userObj }) => {
   const [sweet, setSweet] = useState("");
   const [sweets, setSweets] = useState([]);
+  const [attachment, setAttachment] = useState();
   useEffect(() => { // when the component mounts
     dbService.collection("sweets").onSnapshot((snapshot) => {
       const sweetArray = snapshot.docs.map((doc) => ({
@@ -16,12 +18,23 @@ const Home = ({ userObj }) => {
   }, []);
   const onSubmit = async (event) => {
     event.preventDefault();
-    await dbService.collection("sweets").add({
+    let attachmentUrl = "";
+    if (attachment !== ""){ // if there's an attachment(photo)
+      const attachmentRef = storageService
+        .ref()
+        .child(`${userObj.uid}/${uuidv4()}`);
+      const response = await attachmentRef.putString(attachment, "data_url");
+      attachmentUrl = await response.ref.getDownloadURL(); // update attachmentUrl
+    }
+    const sweetObj = {
       text: sweet,
       createdAt: Date.now(),
       creatorId: userObj.uid,
-    });
+      attachmentUrl,
+    };
+    await dbService.collection("sweets").add(sweetObj);
     setSweet("");
+    setAttachment();
   };
   const onChange = (event) => {
     const{
@@ -36,10 +49,14 @@ const Home = ({ userObj }) => {
     const theFile = files[0]; // get the file: only 1 file
     const reader= new FileReader();
     reader.onloadend = (finishedEvent) => {
-      console.log(finishedEvent);
+      const {
+        currentTarget: { result },
+      } = finishedEvent;
+      setAttachment(result);
     }
     reader.readAsDataURL(theFile);
   };
+  const onClearAttachment = () => setAttachment(null);
   return (
     <div>
       <form onSubmit={onSubmit}>
@@ -51,7 +68,13 @@ const Home = ({ userObj }) => {
           maxLength={120} 
         />
         <input type="file" accept="image/*" onChange={onFileChange} />
-        <input type='submit' value="Sweet" />
+        <input type="submit" value="Sweet" />
+        {attachment && (
+          <div>
+            <img src={attachment} width="50px" height="50px" />
+            <button onClick={onClearAttachment}>Clear</button>
+          </div>
+        )}
      </form>
      <div>
        {sweets.map((sweet) => (
