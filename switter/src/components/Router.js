@@ -7,7 +7,7 @@ import Navigaton from "components/Navigation";
 const AppRouter = ({ isLoggedIn, userObj }) => {
   return (
     <Router>
-      {isLoggedIn && <Navigaton />}
+      {isLoggedIn && <Navigaton userObj={userObj} />}
       <Switch>
         {isLoggedIn ?
           (

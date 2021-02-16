@@ -1,27 +1,40 @@
-import { authService, dbService } from "fbase";
-import React, { useEffect } from "react";
+import { authService } from "fbase";
+import { useState } from "react";
 import { useHistory } from "react-router-dom";
 
 // eslint-disable-next-line
 export default ({ userObj }) => {
   const history = useHistory();
+  const [newDisplayName, setNewDisplayName] = useState(userObj.displayName);
   const onLogOutClick = () => {
     authService.signOut();
     history.push("/");
   };
-  const getMySweets = async() => {
-    const sweets = await dbService
-      .collection("sweets")
-      .where("creatorId", "==", userObj.uid)
-      .orderBy("createdAt")
-      .get();
-    console.log(sweets.docs.map(doc => doc.data()));
+  const onChange = (event) => {
+    const {
+      target: { value },
+    } = event;
+    setNewDisplayName(value);
   };
-  useEffect(() => {
-    getMySweets();
-  }, []);
+  const onSubmit = async (event) => {
+    event.preventDefault();
+    if(userObj.displayName !== newDisplayName) {
+     await userObj.updateProfile({
+       displayName: newDisplayName,
+     });
+    }
+  };
   return (
     <>
+      <form onSubmit={onSubmit}>
+        <input 
+          onChange={onChange}
+          type="text" 
+          placeholder="Display name"
+          value={newDisplayName}
+        />
+        <input type="submit" value="Update Profile" />
+      </form>
       <button onClick={onLogOutClick}>Log Out</button>
     </>
   );
